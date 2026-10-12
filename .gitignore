@@ -2,5 +2,3 @@
 *__pycache__/*
 *.db
 #.vscode/*
-.venv/
-instance/
