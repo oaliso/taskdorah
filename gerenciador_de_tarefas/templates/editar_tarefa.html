@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Editar Tarefa - Gerenciador de Tarefas{% endblock %}
+{% block content %}
+
+{% set somente_status = not pode_editar(tarefa) %}
+{% set minimo = tarefa.prazo if tarefa.prazo and tarefa.prazo < agora else agora %}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="cartao">
+            <div class="mb-4">
+                <h2 class="fw-bold mb-1">Editar Tarefa</h2>
+                <p class="text-secondary mb-0">
+                    {% if somente_status %}Você pode alterar apenas o status desta tarefa{% else %}Atualize os dados da tarefa{% endif %}
+                </p>
+            </div>
+
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label" for="titulo">Título</label>
+                    <input type="text" id="titulo" name="titulo" class="form-control"
+                           value="{{ tarefa.titulo }}" maxlength="150" required
+                           {{ 'readonly' if somente_status else 'autofocus' }}>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="descricao">Descrição</label>
+                    <textarea id="descricao" name="descricao" class="form-control" rows="4" required
+                              {{ 'readonly' if somente_status else '' }}>{{ tarefa.descricao }}</textarea>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="prioridade">Prioridade</label>
+                        <select id="prioridade" name="prioridade" class="form-select"
+                                {{ 'disabled' if somente_status else '' }}>
+                            {% for prioridade in PRIORIDADES_VALIDAS %}
+                                <option value="{{ prioridade }}" {{ 'selected' if tarefa.prioridade == prioridade else '' }}>
+                                    {{ prioridade }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label" for="prazo">Prazo</label>
+                        <input type="datetime-local" id="prazo" name="prazo" class="form-control"
+                               value="{{ tarefa.prazo.strftime('%Y-%m-%dT%H:%M') if tarefa.prazo else '' }}"
+                               min="{{ minimo.strftime('%Y-%m-%dT%H:%M') }}"
+                               {{ 'readonly' if somente_status else '' }}>
+                        <div class="form-text">
+                            {% if somente_status %}Apenas o criador ou administrador pode alterar.{% else %}Deixe vazio para remover o prazo.{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label" for="status">Status</label>
+                    <select id="status" name="status" class="form-select">
+                        {% for s in STATUS_VALIDOS %}
+                            <option value="{{ s }}" {{ 'selected' if tarefa.status == s else '' }}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('admin_dashboard') if eh_admin() else url_for('quadro') }}"
+                       class="btn btn-outline-secondary w-50"
+                       style="border-radius:10px; padding:.7rem 1rem;">Cancelar</a>
+                    <button type="submit" class="btn btn-principal w-50">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
