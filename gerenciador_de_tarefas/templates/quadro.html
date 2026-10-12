@@ -1,1 +1,56 @@
-{% extends 'base.html' %}{% from '_macros.html' import filtro, prazo, mudar_status with context %}{% block title %}Meu quadro · Taskdorah{% endblock %}{% block content %}<div class="cabecalho"><div><p class="sobretitulo">SEU ESPAÇO DE TRABALHO</p><h1>Meu quadro</h1><p class="text-secondary">Acompanhe suas tarefas, do primeiro passo à conclusão.</p></div><a class="btn btn-principal" href="{{ url_for('editar_tarefa') }}">+ Nova tarefa</a></div>{{ filtro() }}<p class="text-secondary">{{ tarefas|length }} tarefa(s) encontrada(s)</p><div class="quadro">{% for valor, nome in status_opcoes.items() %}<section class="coluna status-{{ valor }}" aria-labelledby="coluna-{{ valor }}"><h2 id="coluna-{{ valor }}">{{ nome }} <span class="contador">{{ tarefas|selectattr('status','equalto',valor)|list|length }}</span></h2>{% for t in tarefas if t.status == valor %}<article class="cartao-tarefa"><span class="selo status-{{ t.status }}">{{ nome }}</span><h3><a href="{{ url_for('editar_tarefa', tarefa_id=t.id) }}">{{ t.titulo }}</a></h3>{% if t.descricao %}<p class="descricao">{{ t.descricao }}</p>{% endif %}<p class="prioridade-info">Prioridade {{ prioridades[t.prioridade]|lower }}</p><p class="prazo-info">Prazo: {{ prazo(t) }}</p><p class="text-secondary">Contato: {{ t.contato or 'Não vinculado' }}</p><a class="btn" href="{{ url_for('editar_tarefa', tarefa_id=t.id) }}">Editar tarefa</a>{{ mudar_status(t) }}</article>{% else %}<p class="vazio">Nenhuma tarefa nesta etapa.</p>{% endfor %}</section>{% endfor %}</div>{% endblock %}
+{% extends 'base.html' %}
+{% from '_macros.html' import filtro, prazo, mudar_status, estado_visual, status_telas with context %}
+{% block title %}Meu quadro · Taskdorah{% endblock %}
+{% block content %}
+    {% set selecao = namespace(itens=[]) %}
+    {% for item in tarefas %}
+        {% if not request.args.get('etapa') or estado_visual(item) == request.args.get('etapa') %}
+            {% set selecao.itens = selecao.itens + [item] %}
+        {% endif %}
+    {% endfor %}
+    {% set tarefas = selecao.itens %}
+    <div class="cabecalho">
+        <div>
+            <p class="sobretitulo">SEU ESPAÇO DE TRABALHO</p>
+            <h1>Meu quadro</h1>
+            <p class="text-secondary">Acompanhe suas tarefas, do primeiro passo à conclusão.</p>
+        </div>
+        <a class="btn btn-principal" href="{{ url_for('editar_tarefa') }}">+ Nova tarefa</a>
+    </div>
+    {{ filtro() }}<p class="text-secondary">{{ tarefas|length }} tarefa(s) encontrada(s)</p>
+    <div class="quadro">
+        {% for valor, nome in status_telas.items() %}
+            <section class="coluna status-{{ valor }}" aria-labelledby="coluna-{{ valor }}">
+                <h2 id="coluna-{{ valor }}">{{ nome }} <span class="contador">
+                {% set total = namespace(valor=0) %}
+                {% for item in tarefas %}
+                    {% if estado_visual(item) == valor %}
+                        {% set total.valor = total.valor + 1 %}
+                    {% endif %}
+                {% endfor %}{{ total.valor }}</span>
+                </h2>
+                {% for t in tarefas if estado_visual(t) == valor %}
+                    <article class="cartao-tarefa">
+                        <span class="selo status-{{ estado_visual(t) }}">{{ nome }}</span>
+                        <h3>
+                        <a href="{{ url_for('editar_tarefa', tarefa_id=t.id) }}">{{ t.titulo }}</a>
+                        </h3>
+                        {% if t.descricao %}
+                            <p class="descricao">{{ t.descricao }}</p>
+                        {% endif %}
+                        <p class="prioridade-info">Prioridade {{ prioridades[t.prioridade]|lower }}</p>
+                        <p class="prazo-info">Prazo: {{ prazo(t) }}</p>
+                        <p class="text-secondary">Responsável: {{ t.responsavel }}</p>
+                        <p class="text-secondary">Contato: {{ t.contato or 'Não vinculado' }}</p>
+                        <a class="btn" href="{{ url_for('editar_tarefa', tarefa_id=t.id) }}">Editar tarefa</a>{{ mudar_status(t) }}
+                    </article>
+                {% else %}
+                    <p class="vazio">Nenhuma tarefa nesta etapa.</p>
+                {% endfor %}
+            </section>
+        {% endfor %}
+    </div>
+    {% for t in tarefas if t.status == 'cancelada' %}
+        <p class="aviso">Tarefa com status antigo (Cancelada): <a href="{{ url_for('editar_tarefa', tarefa_id=t.id) }}">{{ t.titulo }}</a>. Edite para selecionar um dos status atuais.</p>
+    {% endfor %}
+{% endblock %}

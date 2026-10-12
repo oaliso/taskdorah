@@ -1,0 +1,8 @@
+{# Include dentro do formulário de tarefa. Espera contatos e tarefa (opcional). #}
+<label for="contato_id">Contato vinculado</label>
+<select id="contato_id" name="contato_id" class="form-select">
+    <option value="">Sem contato</option>
+    {% for c in contatos %}
+        <option value="{{ c.id }}" data-owner="{{ c.usuario_id }}" {% if tarefa is defined and tarefa.contato_id == c.id %}selected{% endif %}>{{ c.nome }}</option>
+    {% endfor %}
+</select>
