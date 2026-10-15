@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Contatos - Gerenciador de Tarefas{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Meus contatos</h1>
+        <p class="text-body-secondary mb-0">
+            Consulte as pessoas que podem ser vinculadas às suas tarefas.
+        </p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('formulario_contato') }}">
+        Adicionar contato
+    </a>
+</div>
+
+<form method="get" action="{{ url_for('lista_contatos') }}" class="card card-body mb-4">
+    <div class="row g-2 align-items-end">
+        <div class="col-md">
+            <label class="form-label" for="busca">Buscar por nome, e-mail ou nome de usuário</label>
+            <input
+                class="form-control"
+                id="busca"
+                name="busca"
+                type="search"
+                value="{{ request.args.get('busca', '') }}"
+                placeholder="Digite um nome, e-mail ou nome de usuário"
+            >
+        </div>
+        <div class="col-md-auto d-flex gap-2">
+            <button class="btn btn-primary" type="submit">Buscar</button>
+            <a class="btn btn-outline-secondary" href="{{ url_for('lista_contatos') }}">Limpar</a>
+        </div>
+    </div>
+</form>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th scope="col">Nome</th>
+                    <th scope="col">E-mail</th>
+                    <th scope="col">Nome de usuário</th>
+                    <th scope="col" class="text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contato in contatos %}
+                <tr>
+                    <td class="fw-semibold">{{ contato.nome }}</td>
+                    <td>{{ contato.email or 'Não informado' }}</td>
+                    <td>{{ contato.nomeUsuario or 'Não informado' }}</td>
+                    <td class="text-end">
+                        <a
+                            class="btn btn-sm btn-outline-primary"
+                            href="{{ url_for('formulario_contato', contato_id=contato.id) }}"
+                        >
+                            Editar
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-body-secondary py-5">
+                        Nenhum contato encontrado.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
