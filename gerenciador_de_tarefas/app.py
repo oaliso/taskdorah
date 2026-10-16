@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import Usuario, Tarefa
+from models import Usuario, Tarefa, Contato
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'chaveMuitoMuitoSecreta'
@@ -189,8 +189,13 @@ def adicionar_tarefa():
             flash('ID do responsável inválido.', 'danger')
             return redirect(url_for('adicionar_tarefa'))
         
-        if not db.session.get(Usuario, responsavel_id):
+        responsavel = db.session.get(Usuario, responsavel_id)
+        if not responsavel:
             flash('Usuário responsável não encontrado.', 'danger')
+            return redirect(url_for('adicionar_tarefa'))
+
+        if not (eh_admin() or current_user.podeAtribuirA(responsavel)):
+            flash('Você só pode atribuir tarefas a si mesmo ou a contatos.', 'danger')
             return redirect(url_for('adicionar_tarefa'))
 
         nova_tarefa = Tarefa(titulo=titulo, descricao=descricao, status=status, prioridade=prioridade, prazo=prazo, criador_id=current_user.id, responsavel_id=responsavel_id) # type: ignore
@@ -201,7 +206,10 @@ def adicionar_tarefa():
         flash('Tarefa adicionada com sucesso!', 'success')
         return voltar_para_lista()
 
-    usuarios = Usuario.query.filter(Usuario.id != current_user.id).all()
+    if eh_admin():
+        usuarios = Usuario.query.filter(Usuario.id != current_user.id).all()
+    else:
+        usuarios = current_user.contatos
     return render_template('adicionar_tarefa.html', usuarios=usuarios, agora=datetime.now())
 
 #editar tarefa
@@ -301,6 +309,91 @@ def quadro():
     return render_template('quadro.html',
                            atribuidas_a_mim=recebidas + para_mim,
                            delegadas=delegadas)
+
+@app.route('/contatos')
+@login_required
+def lista_contatos():
+    busca = request.args.get('busca', '').strip().lower()
+    contatos = current_user.contatos
+    if busca:
+        contatos = [c for c in contatos
+                    if busca in c.nome.lower()
+                    or busca in c.email.lower()
+                    or busca in c.nomeUsuario.lower()]
+    solicitacoes = Contato.query.filter_by(
+        destinatario_id=current_user.id, status='pendente').all()
+    return render_template('contatos.html', contatos=contatos, solicitacoes=solicitacoes)
+
+
+@app.route('/contatos/novo', methods=['GET', 'POST'])
+@login_required
+def formulario_contato():
+    if request.method == 'POST':
+        identificador = request.form.get('identificador', '').strip()
+        alvo = Usuario.query.filter(
+            (Usuario.email == identificador.lower()) | (Usuario.nomeUsuario == identificador)
+        ).first()
+
+        if not alvo:
+            flash('Usuário não encontrado.', 'danger')
+        elif alvo.id == current_user.id:
+            flash('Você não pode adicionar a si mesmo.', 'danger')
+        else:
+            existente = current_user.contatoCom(alvo)
+            if existente and existente.status == 'aceito':
+                flash('Vocês já são contatos.', 'danger')
+            elif existente and existente.status == 'pendente':
+                if existente.solicitante_id == alvo.id:
+                    flash('Essa pessoa já enviou uma solicitação para você. Aceite na lista.', 'info')
+                else:
+                    flash('Solicitação já enviada, aguardando resposta.', 'info')
+            else:
+                if existente:  # recusada antes: descarta o registro antigo e cria outro
+                    db.session.delete(existente)
+                    db.session.flush()
+                db.session.add(Contato(solicitante_id=current_user.id, # type: ignore
+                                       destinatario_id=alvo.id))  # type: ignore
+                db.session.commit()
+                flash('Solicitação enviada!', 'success')
+                return redirect(url_for('lista_contatos'))
+        return redirect(url_for('formulario_contato'))
+
+    return render_template('contatos_form.html')
+
+
+@app.route('/contatos/<int:contato_id>/responder', methods=['POST'])
+@login_required
+def responder_contato(contato_id):
+    contato = db.get_or_404(Contato, contato_id)
+    if contato.destinatario_id != current_user.id or contato.status != 'pendente':
+        flash('Solicitação inválida.', 'danger')
+        return redirect(url_for('lista_contatos'))
+
+    acao = request.form.get('acao')
+    if acao not in ('aceitar', 'recusar'):
+        flash('Ação inválida.', 'danger')
+        return redirect(url_for('lista_contatos'))
+
+    contato.status = 'aceito' if acao == 'aceitar' else 'recusado'
+    contato.respondidoEm = datetime.utcnow()
+    db.session.commit()
+    flash('Contato adicionado!' if acao == 'aceitar' else 'Solicitação recusada.', 'success')
+    return redirect(url_for('lista_contatos'))
+
+
+@app.route('/contatos/<int:contato_id>/remover', methods=['POST'])
+@login_required
+def remover_contato(contato_id):
+    contato = db.get_or_404(Contato, contato_id)
+    participa = current_user.id in (contato.solicitante_id, contato.destinatario_id)
+    if not participa or contato.status != 'aceito':
+        flash('Contato inválido.', 'danger')
+        return redirect(url_for('lista_contatos'))
+
+    db.session.delete(contato)
+    db.session.commit()
+    flash('Contato removido.', 'success')
+    return redirect(url_for('lista_contatos'))
 
 @app.route('/logout')
 @login_required
