@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Contatos - Gerenciador de Tarefas{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Meus contatos</h1>
+        <p class="text-secondary mb-0">
+            Gerencie seus contatos e as solicitações recebidas.
+        </p>
+    </div>
+    <a class="btn btn-principal" href="{{ url_for('formulario_contato') }}">
+        Enviar solicitação
+    </a>
+</div>
+
+<form method="get" action="{{ url_for('lista_contatos') }}" class="cartao mb-4">
+    <div class="row g-2 align-items-end">
+        <div class="col-md">
+            <label class="form-label" for="busca">Buscar contato</label>
+            <input
+                class="form-control"
+                id="busca"
+                name="busca"
+                type="search"
+                value="{{ request.args.get('busca', '') }}"
+                placeholder="Nome, e-mail ou nome de usuário"
+            >
+        </div>
+        <div class="col-md-auto d-flex gap-2">
+            <button class="btn btn-principal" type="submit">Buscar</button>
+            <a class="btn btn-outline-secondary" href="{{ url_for('lista_contatos') }}">Limpar</a>
+        </div>
+    </div>
+</form>
+
+{% if solicitacoes %}
+<section class="cartao mb-4" aria-labelledby="titulo-solicitacoes">
+    <h2 class="h4 mb-3" id="titulo-solicitacoes">Solicitações recebidas</h2>
+
+    <div class="d-flex flex-column gap-3">
+        {% for solicitacao in solicitacoes %}
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border-bottom pb-3">
+            <div>
+                <strong>{{ solicitacao.solicitante.nome }}</strong>
+                <div class="text-secondary small">
+                    {{ solicitacao.solicitante.email }} · @{{ solicitacao.solicitante.nomeUsuario }}
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <form method="post" action="{{ url_for('responder_contato', contato_id=solicitacao.id) }}">
+                    <input type="hidden" name="acao" value="aceitar">
+                    <button class="btn btn-principal btn-sm" type="submit">Aceitar</button>
+                </form>
+                <form method="post" action="{{ url_for('responder_contato', contato_id=solicitacao.id) }}">
+                    <input type="hidden" name="acao" value="recusar">
+                    <button class="btn btn-outline-danger btn-sm" type="submit">Recusar</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="cartao" aria-labelledby="titulo-contatos">
+    <h2 class="h4 mb-3" id="titulo-contatos">Lista de contatos</h2>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th scope="col">Nome</th>
+                    <th scope="col">E-mail</th>
+                    <th scope="col">Nome de usuário</th>
+                    <th scope="col" class="text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contato in contatos %}
+                <tr>
+                    <td class="fw-semibold">{{ contato.nome }}</td>
+                    <td>{{ contato.email }}</td>
+                    <td>@{{ contato.nomeUsuario }}</td>
+                    <td class="text-end">
+                        <form
+                            method="post"
+                            action="{{ url_for('remover_contato', contato_id=current_user.contatoCom(contato).id) }}"
+                            class="d-inline"
+                        >
+                            <button class="btn btn-outline-danger btn-sm" type="submit">
+                                Remover
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-secondary py-4">
+                        Você ainda não possui contatos adicionados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
