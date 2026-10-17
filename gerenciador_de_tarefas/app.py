@@ -23,7 +23,7 @@ CLASSES_STATUS = {
 }
 STATUS_VALIDOS = list(CLASSES_STATUS)
 STATUS_ENCERRADOS = ['Concluída', 'Cancelada']
-PRIORIDADES_VALIDAS = ['Alta', 'Média', 'Baixa', 'A definir']
+PRIORIDADES_VALIDAS = ['A definir', 'Alta', 'Média', 'Baixa']
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -157,7 +157,13 @@ def admin_dashboard():
         return redirect(url_for('quadro'))
 
     tarefas = Tarefa.query.all()
-    return render_template('quadro_admin.html', tarefas = tarefas)
+    return render_template('quadro_admin.html', 
+                           tarefas = tarefas,
+                           STATUS_VALIDOS = STATUS_VALIDOS,
+                           classes = CLASSES_STATUS,
+                           tarefa_atrasada = tarefa_atrasada
+    )
+                        
 
 #adicionar tarefa
 @app.route('/adicionar_tarefa', methods=['GET', 'POST'])
