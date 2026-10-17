@@ -255,7 +255,8 @@ def editar_tarefa(tarefa_id):
             tarefa.descricao = descricao
             tarefa.prioridade = prioridade
             tarefa.prazo = prazo
-            tarefa.status = status
+            
+        tarefa.status = status
 
         db.session.commit()
         flash('Tarefa atualizada com sucesso!', 'success')

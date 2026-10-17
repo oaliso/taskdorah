@@ -19,18 +19,14 @@
     <div class="col-6 col-md">
         <div class="stat"><div class="num">{{ tarefas|length }}</div><div class="text-secondary small">Total</div></div>
     </div>
+    {% for s in STATUS_VALIDOS %}
     <div class="col-6 col-md">
-        <div class="stat status-pendente"><div class="num">{{ tarefas|selectattr('status', 'equalto', 'Pendente')|list|length }}</div><div class="text-secondary small">Pendentes</div></div>
+        <div class="stat {{ CLASSES_STATUS[s] }}">
+            <div class="num">{{ tarefas|selectattr('status', 'equalto', s)|list|length }}</div>
+            <div class="text-secondary small">{{ s }}</div>
+        </div>
     </div>
-    <div class="col-6 col-md">
-        <div class="stat status-andamento"><div class="num">{{ tarefas|selectattr('status', 'equalto', 'Em andamento')|list|length }}</div><div class="text-secondary small">Em andamento</div></div>
-    </div>
-    <div class="col-6 col-md">
-        <div class="stat status-concluida"><div class="num">{{ tarefas|selectattr('status', 'equalto', 'Concluída')|list|length }}</div><div class="text-secondary small">Concluídas</div></div>
-    </div>
-    <div class="col-6 col-md">
-        <div class="stat status-cancelada"><div class="num">{{ tarefas|selectattr('status', 'equalto', 'Cancelada')|list|length }}</div><div class="text-secondary small">Canceladas</div></div>
-    </div>
+    {% endfor %}
 </div>
 
 <div class="d-flex flex-wrap gap-2 mb-3">

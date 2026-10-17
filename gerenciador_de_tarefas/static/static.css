@@ -1,9 +1,9 @@
 /* ===== Base: modo claro e paleta Índigo (padrão) ===== */
 :root {
-    --cor-fundo: #f3f4f8;
+    --cor-fundo: color-mix(in srgb, var(--cor-primaria) 7%, white);
     --cor-superficie: #ffffff;
-    --cor-superficie-2: #f8f9fc;
-    --cor-borda: #e5e7eb;
+    --cor-superficie-2: color-mix(in srgb, var(--cor-primaria) 4%, white);
+    --cor-borda: color-mix(in srgb, var(--cor-primaria) 12%, #e5e7eb);
     --cor-texto: #1f2937;
     --cor-suave: #6b7280;
     --cor-navbar: #111827;
@@ -62,13 +62,13 @@
 
 /* ===== Modo escuro (deve ficar depois das paletas) ===== */
 :root[data-bs-theme="dark"] {
-    --cor-fundo: #0f172a;
-    --cor-superficie: #1e293b;
-    --cor-superficie-2: #273449;
-    --cor-borda: #334155;
+    --cor-fundo: color-mix(in srgb, var(--cor-primaria) 8%, #0b0b0f);
+    --cor-superficie: color-mix(in srgb, var(--cor-primaria) 12%, #15151a);
+    --cor-superficie-2: color-mix(in srgb, var(--cor-primaria) 16%, #1b1b21);
+    --cor-borda: color-mix(in srgb, var(--cor-primaria) 22%, #2a2a31);
     --cor-texto: #e5e7eb;
     --cor-suave: #9ca3af;
-    --cor-navbar: #020617;
+    --cor-navbar: color-mix(in srgb, var(--cor-primaria) 6%, #050507);
     --sombra: rgba(0, 0, 0, .45);
     --cor-primaria-suave: rgba(255, 255, 255, .12);
     --cor-link: var(--cor-primaria-clara);
