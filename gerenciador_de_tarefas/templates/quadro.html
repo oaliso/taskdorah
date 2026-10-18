@@ -37,12 +37,12 @@
                 data-editar="{{ url_for('editar_tarefa', tarefa_id=tarefa.id) }}"
             >
 
-                <div class="fw-semibold mb-1">
+                <div class="fw-semibold mb-1" style="overflow: hidden;">
                     {{ tarefa.titulo }}
                 </div>
 
                 {% if tarefa.descricao %}
-                    <div class="text-secondary small">
+                    <div class="text-secondary small" style="overflow: hidden;">
                         {{ tarefa.descricao|truncate(70) }}
                     </div>
                 {% endif %}
@@ -189,17 +189,19 @@
             style="border:0; border-radius:16px;"
         >
 
-            <div class="modal-header border-0 pb-0">
+            <div class="modal-header border-0 pb-0" style="align-items: flex-start;">
 
                 <h5
                     class="modal-title fw-bold"
                     id="modalTitulo"
+                    style="overflow-wrap:anywhere; word-break:break-word; max-width: 93%;"
                 ></h5>
 
                 <button
                     type="button"
                     class="btn-close"
                     data-bs-dismiss="modal"
+                    style="margin-top: 3px;"
                 ></button>
 
             </div>
@@ -253,7 +255,7 @@
                     <p
                         id="modalDescricao"
                         class="mb-0"
-                        style="white-space:pre-wrap;"
+                        style="overflow-wrap: anywhere; word-break:break-word; white-space:pre-wrap;"
                     ></p>
 
                 </div>

@@ -88,6 +88,7 @@
                         <form
                             method="post"
                             action="{{ url_for('remover_contato', contato_id=current_user.contatoCom(contato).id) }}"
+                            onsubmit="return confirm('Tem certeza que deseja excluir este contato?');"
                             class="d-inline"
                         >
                             <button class="btn btn-outline-danger btn-sm" type="submit">
