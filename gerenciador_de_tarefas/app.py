@@ -397,9 +397,27 @@ def remover_contato(contato_id):
         flash('Contato inválido.', 'danger')
         return redirect(url_for('lista_contatos'))
 
+    usuarios_do_contato = (contato.solicitante_id, contato.destinatario_id)
+    tarefas_repassadas = Tarefa.query.filter(
+        Tarefa.criador_id.in_(usuarios_do_contato),
+        Tarefa.responsavel_id.in_(usuarios_do_contato),
+        Tarefa.criador_id != Tarefa.responsavel_id
+    ).all()
+
+    for tarefa in tarefas_repassadas:
+        tarefa.responsavel_id = tarefa.criador_id
+
     db.session.delete(contato)
     db.session.commit()
-    flash('Contato removido.', 'success')
+
+    quantidade = len(tarefas_repassadas)
+    if quantidade:
+        flash(
+            f'Contato removido. Tarefas devolvidas aos criadores: {quantidade}.',
+            'success'
+        )
+    else:
+        flash('Contato removido.', 'success')
     return redirect(url_for('lista_contatos'))
 
 @app.route('/logout')
