@@ -23,7 +23,7 @@ CLASSES_STATUS = {
 }
 STATUS_VALIDOS = list(CLASSES_STATUS)
 STATUS_ENCERRADOS = ['Concluída', 'Cancelada']
-PRIORIDADES_VALIDAS = ['Alta', 'Média', 'Baixa', 'A definir']
+PRIORIDADES_VALIDAS = ['A definir', 'Alta', 'Média', 'Baixa']
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -157,7 +157,13 @@ def admin_dashboard():
         return redirect(url_for('quadro'))
 
     tarefas = Tarefa.query.all()
-    return render_template('quadro_admin.html', tarefas = tarefas)
+    return render_template('quadro_admin.html', 
+                           tarefas = tarefas,
+                           STATUS_VALIDOS = STATUS_VALIDOS,
+                           classes = CLASSES_STATUS,
+                           tarefa_atrasada = tarefa_atrasada
+    )
+                        
 
 #adicionar tarefa
 @app.route('/adicionar_tarefa', methods=['GET', 'POST'])
@@ -249,7 +255,8 @@ def editar_tarefa(tarefa_id):
             tarefa.descricao = descricao
             tarefa.prioridade = prioridade
             tarefa.prazo = prazo
-            tarefa.status = status
+            
+        tarefa.status = status
 
         db.session.commit()
         flash('Tarefa atualizada com sucesso!', 'success')
@@ -390,9 +397,27 @@ def remover_contato(contato_id):
         flash('Contato inválido.', 'danger')
         return redirect(url_for('lista_contatos'))
 
+    usuarios_do_contato = (contato.solicitante_id, contato.destinatario_id)
+    tarefas_repassadas = Tarefa.query.filter(
+        Tarefa.criador_id.in_(usuarios_do_contato),
+        Tarefa.responsavel_id.in_(usuarios_do_contato),
+        Tarefa.criador_id != Tarefa.responsavel_id
+    ).all()
+
+    for tarefa in tarefas_repassadas:
+        tarefa.responsavel_id = tarefa.criador_id
+
     db.session.delete(contato)
     db.session.commit()
-    flash('Contato removido.', 'success')
+
+    quantidade = len(tarefas_repassadas)
+    if quantidade:
+        flash(
+            f'Contato removido. Tarefas devolvidas aos criadores: {quantidade}.',
+            'success'
+        )
+    else:
+        flash('Contato removido.', 'success')
     return redirect(url_for('lista_contatos'))
 
 @app.route('/logout')
