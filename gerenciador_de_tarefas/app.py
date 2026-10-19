@@ -95,6 +95,7 @@ app.jinja_env.globals.update(
     pode_mudar_status=pode_mudar_status,
     eh_admin=eh_admin,
     tarefa_atrasada=tarefa_atrasada,
+    STATUS_ENCERRADOS=STATUS_ENCERRADOS,
     contar_solicitacoes_pendentes=contar_solicitacoes_pendentes,
     CLASSES_STATUS=CLASSES_STATUS,
     STATUS_VALIDOS=STATUS_VALIDOS,

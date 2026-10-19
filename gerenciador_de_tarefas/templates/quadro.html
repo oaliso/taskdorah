@@ -13,6 +13,8 @@
         </div>
 
         {% for tarefa in lista %}
+        {% set atrasada = tarefa_atrasada(tarefa) %}
+        {% set vai_atrasar = tarefa.prazo and not atrasada and tarefa.status not in STATUS_ENCERRADOS %}
 
         <div class="cartao-tarefa">
 
@@ -31,7 +33,8 @@
 
                 data-prazo="{{ tarefa.prazo.strftime('%d/%m/%Y às %H:%M') if tarefa.prazo else '' }}"
                 data-prioridade="{{ tarefa.prioridade or 'A definir' }}"
-                data-atrasada="{{ 'true' if tarefa_atrasada(tarefa) else 'false' }}"
+                data-atrasada="{{ 'true' if atrasada else 'false' }}"
+                {% if vai_atrasar %}data-vence="{{ tarefa.prazo.isoformat(timespec='seconds') }}"{% endif %}
 
                 data-rotulo="{{ 'Editar' if pode_editar(tarefa) else 'Alterar status' }}"
                 data-editar="{{ url_for('editar_tarefa', tarefa_id=tarefa.id) }}"
@@ -48,19 +51,20 @@
                 {% endif %}
 
                 {% if tarefa.prazo %}
-                    <div class="prazo-info {% if tarefa_atrasada(tarefa) %}prazo-atrasado{% endif %}">
+                    <div class="prazo-info {% if atrasada %}prazo-atrasado{% endif %}">
 
                         <span>
                             Prazo:
                             {{ tarefa.prazo.strftime('%d/%m/%Y às %H:%M') }}
                         </span>
 
-                        {% if tarefa_atrasada(tarefa) %}
+                        {% if atrasada %}
                             <span class="badge-prazo">
                                 Atrasada
                             </span>
+                        {% elif vai_atrasar %}
+                            <span class="badge-prazo" hidden>Atrasada</span>
                         {% endif %}
-
                     </div>
                 {% endif %}
 
@@ -376,6 +380,18 @@
 
             editar.textContent = d.rotulo;
         });
+
+         document.addEventListener('tarefa:atrasada', function (e) {
+         var cartao = e.target;
+         cartao.dataset.atrasada = 'true';   // o modal lê este valor ao abrir
+         var info = cartao.querySelector('.prazo-info');
+         if (info) {
+             info.classList.add('prazo-atrasado');
+             var selo = info.querySelector('.badge-prazo');
+             if (selo) selo.hidden = false;
+         }
+     });
 </script>
+<script src="{{ url_for('static', filename='atraso.js') }}"></script>
 
 {% endblock %}
