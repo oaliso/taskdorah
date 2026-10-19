@@ -296,3 +296,17 @@ a { color: var(--cor-link); }
     border-color: var(--cor-borda);
     box-shadow: none;
 }
+
+.contador-nav {
+    display: inline-block;
+    margin-left: 2.5px;
+    transform: translateY(-8px);
+    padding: .15em .5em;
+    border-radius: 50rem;
+    background: var(--cor-primaria-clara);
+    color: #111827;
+    font-size: .7rem;
+    font-weight: 700;
+    line-height: 1.2;
+    vertical-align: middle;
+}

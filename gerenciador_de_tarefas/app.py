@@ -74,6 +74,14 @@ def pode_mudar_status(tarefa):
 def voltar_para_lista():
     return redirect(url_for('admin_dashboard') if eh_admin() else url_for('quadro'))
 
+def solicitacoes_pendentes_query():
+    return Contato.query.filter_by(destinatario_id=current_user.id, status='pendente')
+
+def contar_solicitacoes_pendentes():
+    if not current_user.is_authenticated:
+        return 0
+    return solicitacoes_pendentes_query().count()
+
 # deixa as funções disponíveis em todos os templates (inclusive dentro de macros)
 app.jinja_env.globals.update(
     pode_editar=pode_editar,
@@ -81,6 +89,7 @@ app.jinja_env.globals.update(
     pode_mudar_status=pode_mudar_status,
     eh_admin=eh_admin,
     tarefa_atrasada=tarefa_atrasada,
+    contar_solicitacoes_pendentes=contar_solicitacoes_pendentes,
     CLASSES_STATUS=CLASSES_STATUS,
     STATUS_VALIDOS=STATUS_VALIDOS,
     PRIORIDADES_VALIDAS=PRIORIDADES_VALIDAS
@@ -327,9 +336,9 @@ def lista_contatos():
                     if busca in c.nome.lower()
                     or busca in c.email.lower()
                     or busca in c.nomeUsuario.lower()]
-    solicitacoes = Contato.query.filter_by(
-        destinatario_id=current_user.id, status='pendente').all()
+    solicitacoes = solicitacoes_pendentes_query().all()
     return render_template('contatos.html', contatos=contatos, solicitacoes=solicitacoes)
+    
 
 
 @app.route('/contatos/novo', methods=['GET', 'POST'])

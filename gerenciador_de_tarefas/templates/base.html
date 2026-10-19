@@ -133,9 +133,18 @@
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('quadro') }}">Quadro</a>
           </li>
+          {% set pendentes = contar_solicitacoes_pendentes() %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('lista_contatos') }}"
-              >Contatos</a
+              >Contatos {%- if pendentes %}
+              <span class="contador-nav"
+                >{{ pendentes if pendentes < 100 else '99+' }}<span
+                  class="visually-hidden"
+                >
+                  {{ 'solicitação pendente' if pendentes == 1 else 'solicitações
+                  pendentes' }}</span
+                ></span
+              >{% endif %}</a
             >
           </li>
           <li class="nav-item">
