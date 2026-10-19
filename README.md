@@ -47,7 +47,7 @@ python seed_demo.py
 Cria três usuários, contatos já aceitos entre eles e tarefas em cada status, incluindo uma atrasada. Pode ser executado de novo para restaurar os dados de demonstração (ele apaga e recria as tarefas e os contatos desses três usuários).
 
 | Usuário | Cargo | Senha |
-|---|---|---|
+| --- | --- | --- |
 | `admin_demo` | admin | `demo123` |
 | `ana_demo` | usuário | `demo123` |
 | `bruno_demo` | usuário | `demo123` |
@@ -57,7 +57,7 @@ Para tornar outro usuário administrador, altere a coluna `cargo` dele para `adm
 ## Regras de permissão
 
 | Ação | Criador | Responsável | Admin |
-|---|:---:|:---:|:---:|
+| --- | :---: | :---: | :---: |
 | Ver a tarefa | sim | sim | sim |
 | Editar título, descrição, prioridade e prazo | sim | não | sim |
 | Alterar o status | sim | sim | sim |
@@ -83,7 +83,7 @@ As regras são verificadas no servidor, e não apenas escondidas na interface.
 
 ## Estrutura
 
-```
+``` none
 gerenciador_de_tarefas/
 ├── app.py            # rotas, regras de permissão e validações
 ├── models.py         # Usuario, Tarefa e Contato
@@ -107,3 +107,13 @@ gerenciador_de_tarefas/
 - A senha mínima é de 4 caracteres, escolha pensada para a demonstração.
 - Datas e horas usam o horário local do servidor, sem fuso.
 - Remover um contato devolve ao criador as tarefas atribuídas entre os dois, mas não há aviso para a outra pessoa.
+
+## Equipe
+
+| Integrante | Tarefas | Contribuição |
+| --- | --- | --- |
+| Alisson | 2, 4, 5, 6, 9, 15, 18, 21, 26 | Repositório, modelos (`Usuario`, `Tarefa`, `Contato`), telas de login, registro, adicionar e editar tarefa, status e cores, visualização do quadro e aviso de solicitações pendentes |
+| Álvaro | 3, 8, 11, 17, 20, 27, 29 | Estrutura de pastas, `static.css`, `app.py`, rotas de contatos, regras de permissão e atribuição, preservação de rascunho nos formulários e README |
+| Arthur | 7, 10, 16, 19, 22, 25 | `quadro.html`, `quadro_admin.html`, telas de contatos, seleção de contato ao adicionar tarefa, ajustes no painel admin e `seed_demo.py` (com o tratamento de tarefas de contatos removidos) |
+
+Planejamento, testes de integração e de fluxo, definição de funcionalidades extras, code freeze e entrega foram feitos por todos.
