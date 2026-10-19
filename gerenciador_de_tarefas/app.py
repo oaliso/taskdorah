@@ -24,6 +24,7 @@ CLASSES_STATUS = {
 STATUS_VALIDOS = list(CLASSES_STATUS)
 STATUS_ENCERRADOS = ['Concluída', 'Cancelada']
 PRIORIDADES_VALIDAS = ['A definir', 'Alta', 'Média', 'Baixa']
+ORDEM_PRAZO = (Tarefa.prazo.is_(None), Tarefa.prazo.asc(), Tarefa.id.asc())
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -165,7 +166,7 @@ def admin_dashboard():
         flash("Acesso negado!", 'danger')
         return redirect(url_for('quadro'))
 
-    tarefas = Tarefa.query.all()
+    tarefas = Tarefa.query.order_by(*ORDEM_PRAZO).all()
     return render_template('quadro_admin.html', 
                            tarefas = tarefas,
                            STATUS_VALIDOS = STATUS_VALIDOS,
@@ -310,20 +311,14 @@ def excluir_tarefa(tarefa_id):
 @app.route('/quadro')
 @login_required
 def quadro():
-    recebidas = Tarefa.query.filter(
-        Tarefa.responsavel_id == current_user.id,
-        Tarefa.criador_id != current_user.id
-    ).all()
-    para_mim = Tarefa.query.filter(
-        Tarefa.responsavel_id == current_user.id,
-        Tarefa.criador_id == current_user.id
-    ).all()
+    atribuidas_a_mim = Tarefa.query.filter(
+        Tarefa.responsavel_id == current_user.id).order_by(*ORDEM_PRAZO).all()
     delegadas = Tarefa.query.filter(
         Tarefa.criador_id == current_user.id,
         Tarefa.responsavel_id != current_user.id
-    ).all()
+    ).order_by(*ORDEM_PRAZO).all()
     return render_template('quadro.html',
-                           atribuidas_a_mim=recebidas + para_mim,
+                           atribuidas_a_mim=atribuidas_a_mim,
                            delegadas=delegadas)
 
 @app.route('/contatos')
