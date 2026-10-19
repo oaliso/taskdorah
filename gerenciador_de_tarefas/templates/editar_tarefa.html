@@ -4,6 +4,10 @@
 
 {% set somente_status = not pode_editar(tarefa) %}
 {% set minimo = tarefa.prazo if tarefa.prazo and tarefa.prazo < agora else agora %}
+{% set f = form or {} %}
+{% set prazo_atual = tarefa.prazo.strftime('%Y-%m-%dT%H:%M') if tarefa.prazo else '' %}
+{% set prioridade_escolhida = f.get('prioridade') or tarefa.prioridade %}
+{% set status_escolhido = f.get('status') or tarefa.status %}
 
 <div class="row justify-content-center mt-4">
     <div class="col-12 col-md-8 col-lg-6">
@@ -19,14 +23,14 @@
                 <div class="mb-3">
                     <label class="form-label" for="titulo">Título</label>
                     <input type="text" id="titulo" name="titulo" class="form-control"
-                           value="{{ tarefa.titulo }}" maxlength="150" required
-                           {{ 'readonly' if somente_status else 'autofocus' }}>
+                           value="{{ f.get('titulo', tarefa.titulo) }}" maxlength="150" required
+                           {{ 'readonly' if somente_status else ('' if erro_prazo else 'autofocus') }}>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label" for="descricao">Descrição</label>
                     <textarea id="descricao" name="descricao" class="form-control" rows="4" required
-                              {{ 'readonly' if somente_status else '' }}>{{ tarefa.descricao }}</textarea>
+                              {{ 'readonly' if somente_status else '' }}>{{ f.get('descricao', tarefa.descricao) }}</textarea>
                 </div>
 
                 <div class="row g-3 mb-3">
@@ -35,7 +39,7 @@
                         <select id="prioridade" name="prioridade" class="form-select"
                                 {{ 'disabled' if somente_status else '' }}>
                             {% for prioridade in PRIORIDADES_VALIDAS %}
-                                <option value="{{ prioridade }}" {{ 'selected' if tarefa.prioridade == prioridade else '' }}>
+                                <option value="{{ prioridade }}" {{ 'selected' if prioridade_escolhida == prioridade else '' }}>
                                     {{ prioridade }}
                                 </option>
                             {% endfor %}
@@ -44,12 +48,16 @@
 
                     <div class="col-md-6">
                         <label class="form-label" for="prazo">Prazo</label>
-                        <input type="datetime-local" id="prazo" name="prazo" class="form-control"
-                               value="{{ tarefa.prazo.strftime('%Y-%m-%dT%H:%M') if tarefa.prazo else '' }}"
+                        <input type="datetime-local" id="prazo" name="prazo"
+                               class="form-control{{ ' is-invalid' if erro_prazo else '' }}"
+                               value="{{ f.get('prazo', prazo_atual) }}"
                                min="{{ minimo.strftime('%Y-%m-%dT%H:%M') }}"
-                               {{ 'readonly' if somente_status else '' }}>
+                               {{ 'readonly' if somente_status else '' }}
+                               {{ 'autofocus' if erro_prazo else '' }}>
                         <div class="form-text">
-                            {% if somente_status %}Apenas o criador ou administrador pode alterar.{% else %}Deixe vazio para remover o prazo.{% endif %}
+                            {% if somente_status %}Apenas o criador ou administrador pode alterar.
+                            {% elif erro_prazo %}Escolha uma data e hora futura.
+                            {% else %}Deixe vazio para remover o prazo.{% endif %}
                         </div>
                     </div>
                 </div>
@@ -58,7 +66,7 @@
                     <label class="form-label" for="status">Status</label>
                     <select id="status" name="status" class="form-select">
                         {% for s in STATUS_VALIDOS %}
-                            <option value="{{ s }}" {{ 'selected' if tarefa.status == s else '' }}>{{ s }}</option>
+                            <option value="{{ s }}" {{ 'selected' if status_escolhido == s else '' }}>{{ s }}</option>
                         {% endfor %}
                     </select>
                 </div>

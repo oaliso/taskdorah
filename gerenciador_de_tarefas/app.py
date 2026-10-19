@@ -36,6 +36,20 @@ def load_user(user_id):
     return db.session.get(Usuario, int(user_id))
 
 
+def renderizar_adicionar(form=None, erro_prazo=False):
+    if eh_admin():
+        usuarios = Usuario.query.filter(Usuario.id != current_user.id).all()
+    else:
+        usuarios = current_user.contatos
+    return render_template('adicionar_tarefa.html', usuarios=usuarios,
+                           agora=datetime.now(), form=form or {}, erro_prazo=erro_prazo)
+
+
+def renderizar_editar(tarefa, form=None, erro_prazo=False):
+    return render_template('editar_tarefa.html', tarefa=tarefa, agora=datetime.now(),
+                           form=form or {}, erro_prazo=erro_prazo)
+
+
 def validar_prazo(valor, atual=None):
     valor = (valor or '').strip()
     if not valor:
@@ -181,53 +195,47 @@ def admin_dashboard():
 @login_required
 def adicionar_tarefa():
     if request.method == 'POST':
-        titulo = request.form['titulo'].strip()
-        descricao = request.form['descricao'].strip()
+        titulo = request.form.get('titulo', '').strip()
+        descricao = request.form.get('descricao', '').strip()
         if not titulo or not descricao:
             flash('Título e descrição são obrigatórios.', 'danger')
-            return redirect(url_for('adicionar_tarefa'))
-        
-        status = STATUS_VALIDOS[0]  
-        prioridade = request.form.get('prioridade',PRIORIDADES_VALIDAS[0])
+            return renderizar_adicionar(request.form)
 
+        status = STATUS_VALIDOS[0]
+        prioridade = request.form.get('prioridade', PRIORIDADES_VALIDAS[0])
         if prioridade not in PRIORIDADES_VALIDAS:
             flash('Prioridade inválida.', 'danger')
-            return redirect(url_for('adicionar_tarefa'))
+            return renderizar_adicionar(request.form)
 
         try:
             prazo = validar_prazo(request.form.get('prazo'))
         except ValueError as e:
             flash(str(e), 'danger')
-            return redirect(url_for('adicionar_tarefa'))
+            return renderizar_adicionar(request.form, erro_prazo=True)
 
         try:
             responsavel_id = int(request.form.get('responsavel_id') or current_user.id)
         except ValueError:
             flash('ID do responsável inválido.', 'danger')
-            return redirect(url_for('adicionar_tarefa'))
-        
+            return renderizar_adicionar(request.form)
+
         responsavel = db.session.get(Usuario, responsavel_id)
         if not responsavel:
             flash('Usuário responsável não encontrado.', 'danger')
-            return redirect(url_for('adicionar_tarefa'))
+            return renderizar_adicionar(request.form)
 
         if not (eh_admin() or current_user.podeAtribuirA(responsavel)):
             flash('Você só pode atribuir tarefas a si mesmo ou a contatos.', 'danger')
-            return redirect(url_for('adicionar_tarefa'))
+            return renderizar_adicionar(request.form)
 
         nova_tarefa = Tarefa(titulo=titulo, descricao=descricao, status=status, prioridade=prioridade, prazo=prazo, criador_id=current_user.id, responsavel_id=responsavel_id) # type: ignore
-
         db.session.add(nova_tarefa)
         db.session.commit()
 
         flash('Tarefa adicionada com sucesso!', 'success')
         return voltar_para_lista()
 
-    if eh_admin():
-        usuarios = Usuario.query.filter(Usuario.id != current_user.id).all()
-    else:
-        usuarios = current_user.contatos
-    return render_template('adicionar_tarefa.html', usuarios=usuarios, agora=datetime.now())
+    return renderizar_adicionar()
 
 #editar tarefa
 @app.route('/editar_tarefa/<int:tarefa_id>', methods=['GET', 'POST'])
@@ -238,41 +246,41 @@ def editar_tarefa(tarefa_id):
     if not pode_mudar_status(tarefa):
         flash('Você não tem permissão para editar esta tarefa.', 'danger')
         return voltar_para_lista()
-    
+
     if request.method == 'POST':
-        status = request.form['status']
+        status = request.form.get('status', '')
         if status not in STATUS_VALIDOS:
             flash('Status inválido.', 'danger')
-            return redirect(url_for('editar_tarefa', tarefa_id=tarefa_id))
+            return renderizar_editar(tarefa, request.form)
 
-        # só criador e admin alteram título e descrição
+        # só criador e admin alteram os demais campos
         if pode_editar(tarefa):
             prioridade = request.form.get('prioridade', tarefa.prioridade or PRIORIDADES_VALIDAS[0])
             if prioridade not in PRIORIDADES_VALIDAS:
                 flash('Prioridade inválida.', 'danger')
-                return redirect(url_for('editar_tarefa', tarefa_id=tarefa_id))
+                return renderizar_editar(tarefa, request.form)
             try:
                 prazo = validar_prazo(request.form.get('prazo'), tarefa.prazo)
             except ValueError as e:
                 flash(str(e), 'danger')
-                return redirect(url_for('editar_tarefa', tarefa_id=tarefa_id))
-            titulo = request.form['titulo'].strip()
-            descricao = request.form['descricao'].strip()
+                return renderizar_editar(tarefa, request.form, erro_prazo=True)
+            titulo = request.form.get('titulo', '').strip()
+            descricao = request.form.get('descricao', '').strip()
             if not titulo or not descricao:
                 flash('Título e descrição são obrigatórios.', 'danger')
-                return redirect(url_for('editar_tarefa', tarefa_id=tarefa_id))
-            
+                return renderizar_editar(tarefa, request.form)
+
             tarefa.titulo = titulo
             tarefa.descricao = descricao
             tarefa.prioridade = prioridade
             tarefa.prazo = prazo
-            
-        tarefa.status = status
 
+        tarefa.status = status
         db.session.commit()
         flash('Tarefa atualizada com sucesso!', 'success')
         return voltar_para_lista()
-    return render_template('editar_tarefa.html', tarefa=tarefa, agora=datetime.now())
+
+    return renderizar_editar(tarefa)
 
 #alterar apenas o status (usado pelo painel admin)
 @app.route('/alterar_status/<int:tarefa_id>', methods=['POST'])

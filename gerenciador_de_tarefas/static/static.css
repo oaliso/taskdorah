@@ -21,7 +21,7 @@
     --status-andamento: #ffc107;  --status-andamento-texto: #000;
     --status-concluida: #198754;  --status-concluida-texto: #fff;
     --status-cancelada: #dc3545;  --status-cancelada-texto: #fff;
-    --status-atrasada: #dc3545;  --status-cancelada-texto: #fff;
+    --status-atrasada: #dc3545;  --status-atrasada-texto: #fff;
     
 
     /* faz os componentes do Bootstrap seguirem as cores do projeto */
@@ -60,6 +60,7 @@
     --status-andamento: #F0E442;  --status-andamento-texto: #000;
     --status-concluida: #0072B2;  --status-concluida-texto: #fff;
     --status-cancelada: #D55E00;  --status-cancelada-texto: #000;
+    --status-atrasada: #D55E00;  --status-atrasada-texto: #000;
 }
 
 /* ===== Modo escuro (deve ficar depois das paletas) ===== */
