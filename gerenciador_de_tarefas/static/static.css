@@ -21,6 +21,8 @@
     --status-andamento: #ffc107;  --status-andamento-texto: #000;
     --status-concluida: #198754;  --status-concluida-texto: #fff;
     --status-cancelada: #dc3545;  --status-cancelada-texto: #fff;
+    --status-atrasada: #dc3545;  --status-cancelada-texto: #fff;
+    
 
     /* faz os componentes do Bootstrap seguirem as cores do projeto */
     --bs-body-bg: var(--cor-superficie);
@@ -79,6 +81,7 @@
 .status-andamento { --st: var(--status-andamento); --st-texto: var(--status-andamento-texto); --st-icone: "◐"; }
 .status-concluida { --st: var(--status-concluida); --st-texto: var(--status-concluida-texto); --st-icone: "✓"; }
 .status-cancelada { --st: var(--status-cancelada); --st-texto: var(--status-cancelada-texto); --st-icone: "✕"; }
+.status-atrasada  { --st: var(--status-atrasada); --st-texto: var(--status-atrasada-texto); --st-icone: "⚠"; }
 
 .selo {
     display: inline-block;

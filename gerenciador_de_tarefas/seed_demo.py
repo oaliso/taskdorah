@@ -156,7 +156,7 @@ def popular_demo():
     print('Usuários: admin_demo, ana_demo e bruno_demo')
     print(f'Senha de todos os usuários: {SENHA_DEMO}')
     print(
-        f'Foram criados 3 contatos aceitos e {len(tarefas)} tarefas, '
+        f'Foram criados {len(contatos)} contatos aceitos e {len(tarefas)} tarefas, '
         'incluindo 1 atrasada.'
     )
 

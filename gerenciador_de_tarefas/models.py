@@ -56,7 +56,7 @@ class Contato(db.Model):
     destinatario_id = db.Column(db.Integer, db.ForeignKey('usuario.id', ondelete='CASCADE'),
                                 nullable=False, index=True)
     status = db.Column(db.String(20), nullable=False, default='pendente')         # ! status de  pendente, aceito, recusado
-    criadoEm = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    criadoEm = db.Column(db.DateTime, nullable=False, default=datetime.now)
     respondidoEm = db.Column(db.DateTime, nullable=True)
     solicitante = db.relationship('Usuario', foreign_keys=[solicitante_id],
                                   backref=db.backref('solicitacoesEnviadas', lazy=True,

@@ -4,9 +4,14 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import Usuario, Tarefa, Contato
+import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'chaveMuitoMuitoSecreta'
+SECRET_KEY_DEV = 'chave-somente-para-desenvolvimento'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or SECRET_KEY_DEV
+if app.config['SECRET_KEY'] == SECRET_KEY_DEV:
+    app.logger.warning('SECRET_KEY não definida: usando chave de desenvolvimento. '
+                       'Defina a variável de ambiente SECRET_KEY fora do ambiente local.')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gerenciador_de_tarefas.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
@@ -167,12 +172,7 @@ def admin_dashboard():
         return redirect(url_for('quadro'))
 
     tarefas = Tarefa.query.order_by(*ORDEM_PRAZO).all()
-    return render_template('quadro_admin.html', 
-                           tarefas = tarefas,
-                           STATUS_VALIDOS = STATUS_VALIDOS,
-                           classes = CLASSES_STATUS,
-                           tarefa_atrasada = tarefa_atrasada
-    )
+    return render_template('quadro_admin.html', tarefas=tarefas)
                         
 
 #adicionar tarefa
@@ -386,7 +386,7 @@ def responder_contato(contato_id):
         return redirect(url_for('lista_contatos'))
 
     contato.status = 'aceito' if acao == 'aceitar' else 'recusado'
-    contato.respondidoEm = datetime.utcnow()
+    contato.respondidoEm = datetime.now()
     db.session.commit()
     flash('Contato adicionado!' if acao == 'aceitar' else 'Solicitação recusada.', 'success')
     return redirect(url_for('lista_contatos'))
